@@ -1,4 +1,5 @@
 import json
+import pem
 from uuid import uuid4
 from urllib.parse import urlparse
 from django.http import JsonResponse, HttpResponse, HttpRequest
@@ -12,12 +13,71 @@ from blockchain.modules.Blockchain import Blockchain
 blockchain = Blockchain()
 # Creating an address for the node running our server
 
-keyPair = RSA.generate(bits=1024)
-print(f"Public key:  (n={hex(keyPair.n)}, e={hex(keyPair.e)})")
-print(f"Private key: (n={hex(keyPair.n)}, d={hex(keyPair.d)})")
-
 node_address = str(uuid4()).replace('-', '')  # New
 root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'  # New
+
+
+def generate_keys():
+
+    keyFileExists = True
+    keyPair = None
+    # If blockchain keyPair already exists locally
+    # Then return it
+    # If blockchain keyPair does not exist
+    # Then create one and save it in the file system
+    try:
+        # Retrieving keyPair from file if creatd before
+
+        modules_file = open("blockchain_module_n.txt", "r")
+        modules = int(modules_file.read())
+
+        pubExp_file = open("blockchain_public_e.txt", "r")
+        pubExp = int(pubExp_file.read())
+
+        privExp_file = open("blockchain_private_e.txt", "r")
+        privExp = int(privExp_file.read())
+
+        # reconstructing the keyPair from keyPair.n, keyPair.ed and keyPair.d
+        keyPair = RSA.construct((modules, pubExp, privExp))
+
+    except:
+        keyFileExists = False
+        print("NO SUCH FILE")
+
+    if (not keyFileExists):
+        keyPair = RSA.generate(1024)
+
+        # Saving the modules (keyPair.n), Public exponent e (keyPair.e) and
+        # Private exponent d (keyPair.d) to file so we don't create keyPair everytime
+        modules = keyPair.n
+        file_out = open("blockchain_module_n.txt", "w")
+        file_out.write(str(modules))
+        file_out.close
+
+        public_key_com = keyPair.e
+        file_out = open("blockchain_public_e.txt", "w")
+        file_out.write(str(public_key_com))
+        file_out.close
+
+        private_key_com = keyPair.d
+        file_out = open("blockchain_private_e.txt", "w")
+        file_out.write(str(private_key_com))
+        file_out.close
+
+    # print(keyPair)
+    return keyPair
+
+    # return key.publickey().export_key().decode('ASCII')
+
+
+keyPair = generate_keys()
+publicKey = keyPair.publickey().exportKey("PEM").decode()
+
+# .decode().replace(
+#     "-----BEGIN PUBLIC KEY-----", "")
+# publicKey = publicKey.replace(
+#     "-----END PUBLIC KEY-----", "")
+print(type(publicKey))
 
 # Mining a new block
 
@@ -36,6 +96,7 @@ def mine_block(request):
                     'nonce': block.nonce,
                     'previous_hash': block.previous_hash,
                     'transactions': transactions}
+        blockchain.pending_transactions = []
     return JsonResponse(response)
 
 # Getting the full Blockchain
@@ -66,7 +127,7 @@ def get_chain(request):
                 'transactions': txs
             }
             chain_json.append(bc)
-            p_tx = [{'sender': "HARDCODEDTRANSCTION",
+            p_tx = [{'sender': "TESTINGTESTINGTESTING",
                     'receiver': "FORTESTINGPURPOSES",
                      'amount': 20,
                      'time': "12/10/22 08:23:43",
@@ -81,7 +142,9 @@ def get_chain(request):
                 }
                 p_tx.append(t)
 
+        print(type(publicKey))
         response = {'chain': chain_json,
+                    'public_key': publicKey,
                     'pending_transactions': p_tx,
                     'mining_reward': blockchain.mining_reward,
                     'difficulty': blockchain.difficulty,
@@ -113,10 +176,9 @@ def add_transaction(request):  # New
 
         if not all(key in received_json for key in transaction_keys):
             return 'Some elements of the transaction are missing', HttpResponse(status=400)
-        print("PRINTING_KEYPAIR")
-        print(keyPair)
+
         transaction = Transaction(
-            keyPair.publickey().export_key(),
+            received_json.get('sender'),
             received_json.get('receiver'),
             received_json.get('amount'))
 

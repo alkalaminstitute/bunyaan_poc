@@ -1,5 +1,4 @@
 from datetime import datetime
-import json
 import requests
 from Crypto.PublicKey import RSA
 from urllib.parse import urlparse
@@ -117,16 +116,3 @@ class Blockchain:
             self.chain = longest_chain
             return True
         return False
-
-    def generate_keys(self):
-        key = RSA.generate(2048)
-        private_key = key.export_key()
-        file_out = open("private.pem", "wb")
-        file_out.write(private_key)
-
-        public_key = key.publickey().export_key()
-        file_out = open("receiver.pem", "wb")
-        file_out.write(public_key)
-
-        print(public_key.decode('ASCII'))
-        return key.publickey().export_key().decode('ASCII')

@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'blockchain', #Here
+    'blockchain',  # our blockchain app
+    # 'firebase_auth',  # firebase authentication
 ]
 
 MIDDLEWARE = [
@@ -99,6 +100,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'REST_framework.authentication.SessionAuthentication',
+#         'firebase_auth.authentication.FirebaseAuthentication',
+#     ),
+# }
 
 
 # Internationalization
