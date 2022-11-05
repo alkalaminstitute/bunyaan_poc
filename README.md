@@ -23,7 +23,7 @@ pip install Django==4.1.3
 git clone https://github.com/alkalaminstitute/bunyaan_poc.git
 ```
 
-3. In the bunyaan folder you will see multiple folders and files. To run the blockchain do the following:
+5. In the bunyaan folder you will see multiple folders and files. To run the blockchain do the following:
 
 Open two terminals (your starting point should be the main folder):
 
@@ -45,7 +45,7 @@ npm start
 
 After running npm start you should see a widnows open which will have the UI for interacting with the blockchain which you started using python manage.py runserver
 
-4. To start multiple nodes you will have to repeat the steps above in a new folder. Make sure you start the blockchain and react on different ports for the additional nodes. For example if you have three nodes you will run:
+6. To start multiple nodes you will have to repeat the steps above in a new folder. Make sure you start the blockchain and react on different ports for the additional nodes. For example if you have three nodes you will run:
 
 ```
 python manage.py runserver 8000
@@ -73,4 +73,4 @@ npm start --port 3002
 
 Once everything is running, you can start adding transactions and smartcontracts. After mining transactions in one node, you should see them in all of the other nodes as well.
 
-**\*_Please let me know if you find any bugs, there are a few I already know about :)_**
+**_Please let me know if you find any bugs, there are a few I already know about :)_**
