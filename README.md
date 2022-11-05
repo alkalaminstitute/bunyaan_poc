@@ -27,20 +27,20 @@ git clone https://github.com/alkalaminstitute/bunyaan_poc.git
 
 Open two terminals (your starting point should be the main folder):
 
-in terminal 1 run:
+In terminal 1 run:
 
 ```
-python manage.py runserver {port}
+python manage.py runserver 8000
 
 ```
 
-terminal 2:
+In terminal 2 run:
 
 ```
 cd frontend
 rm -r node_modules
 nmp install
-npm start
+npm start --port 3000
 ```
 
 After running npm start you should see a widnows open which will have the UI for interacting with the blockchain which you started using python manage.py runserver
