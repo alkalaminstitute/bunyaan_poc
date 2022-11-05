@@ -73,6 +73,4 @@ npm start --port 3002
 
 Once everything is running, you can start adding transactions and smartcontracts. After mining transactions in one node, you should see them in all of the other nodes as well.
 
-<!---
-Please let me know if you find any bugs, there are a few I already know about :)
---->
+**\*_Please let me know if you find any bugs, there are a few I already know about :)_**
