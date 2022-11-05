@@ -16,7 +16,7 @@ class Block (object):
 
         hashTransactions = ""
 
-        hashString = str(self.timestamp) + str(self.data) + \
+        hashString = str(self.timestamp) + str(len(self.data)) + \
             self.previous_hash + str(self.nonce)
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()

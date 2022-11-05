@@ -1,20 +1,42 @@
+from textwrap import dedent
+from urllib.parse import urlparse
+from Crypto.PublicKey import RSA
+from Crypto.Signature import *
+from time import time
+from datetime import datetime
 from hashlib import sha512
 import hashlib
 import json
 import jsonpickle
-from Crypto.Signature import *
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from datetime import datetime
+from blockchain.modules.Escrow import Escrow
+from blockchain.modules.Transaction import Transaction
 
 
-class Transaction (object):
-    def __init__(self, sender, receiver, amount, timestamp=datetime.now().strftime(
-            "%m/%d/%Y, %H:%M:%S")):
+class MusharakSmartContract:
+
+    def __init__(self, bl_idx, sctx_idx, wallet_address, sender, property,
+                 downpayment, loan_granted=0, lenders=[], escrow=None,
+                 timestamp=datetime.now().strftime("%m/%d/%Y, %H:%M:%S")):
+
+        # smart contracts do not have a private key only a public address so they can receive coins
+        # Its functions are in charge of sending coins
+
+        self.bl_idx = bl_idx
+        self.sctx_idx = sctx_idx
+        self.wallet_address = wallet_address
         self.sender = sender
-        self.receiver = receiver
-        self.amount = int(amount)
+        self.receiver = None
+        self.amount = None
+        self.property = property
+        self.downpayment = int(downpayment)
+        self.loan_requested = self.property.price - self.downpayment
+        self.loan_granted = int(loan_granted)
+        self.loan_remaining = self.loan_requested - self.loan_granted
+        self.balance = int(loan_granted) + int(downpayment)
+        self.lenders = lenders
+        self.escrow = escrow
         self.timestamp = timestamp  # change to current date
         self.signature = None
         self.hash = self.calculate_hash()
@@ -25,8 +47,8 @@ class Transaction (object):
         return RSA.import_key(self.sender)
 
     def calculate_hash(self):
-        hashString = str(self.sender) + str(self.receiver) + \
-            str(self.amount) + str(self.timestamp)
+        hashString = str(self.sender) + str(self.loan_requested) + \
+            str(self.balance) + str(self.timestamp)
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
 
@@ -40,7 +62,7 @@ class Transaction (object):
         if (self.sender is self.receiver):
             print("Sender is the same as the receiver")
             return False
-        if not self.signature or len(self.signature) is 0:
+        if not self.signature or len(self.signature) == 0:
             print("No Signature!")
             return False
 
@@ -107,6 +129,29 @@ class Transaction (object):
         self.signature = sig.hex()
 
         return True
+
+    def set_rent(self, rent):
+        self.property.rent = rent
+
+    def add_lender(self, lender):
+        self.lenders.append(lender)
+
+    def update_balance(self, loan_amount):
+        self.balance += loan_amount
+        self.loan_granted += loan_amount
+        self.loan_remaining -= loan_amount
+
+    def set_escrow(self, name, escrow_address, property_id):
+        self.escrow = Escrow(name, escrow_address, property_id)
+
+    def distribute_rent(self):
+        txs = []
+        for lender in self.lenders:
+            percentage = lender.loaned_amount/self.property.price
+            amt = percentage * self.property.rent
+            tx = Transaction(self.wallet_address, lender.wallet_address, amt)
+            txs.append(tx)
+        return txs
 
     def json_encode(self):
         return jsonpickle.encode(self)

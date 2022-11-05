@@ -1,19 +1,36 @@
+from textwrap import dedent
+from urllib.parse import urlparse
+from Crypto.PublicKey import RSA
+from Crypto.Signature import *
+from time import time
+from datetime import datetime
 from hashlib import sha512
 import hashlib
 import json
 import jsonpickle
-from Crypto.Signature import *
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from datetime import datetime
+
+# There are two types of smart contract transaction
+# 1. is the one that creates the contract which is the contract state variable and its functions
+# 2. is the one that interracts with the contract and in the place of amount, this transaction has the
+# code that interacts with the created smartcontract.
+# User accounts can then interact with a smart contract by submitting
+# transactions that execute a function defined on the smart contract.
+# Smart contracts can define rules, like a regular contract,
+# and automatically enforce them via the code.
 
 
-class Transaction (object):
-    def __init__(self, sender, receiver, amount, timestamp=datetime.now().strftime(
-            "%m/%d/%Y, %H:%M:%S")):
+class ScTransaction:
+
+    def __init__(self, bl_idx, sctx_idx, sender, receiver, func, amount=0,
+                 timestamp=datetime.now().strftime("%m/%d/%Y, %H:%M:%S")):
+
+        self.bl_idx = bl_idx
+        self.sctx_idx = sctx_idx
         self.sender = sender
         self.receiver = receiver
+        self.func = func
         self.amount = int(amount)
         self.timestamp = timestamp  # change to current date
         self.signature = None
@@ -25,8 +42,8 @@ class Transaction (object):
         return RSA.import_key(self.sender)
 
     def calculate_hash(self):
-        hashString = str(self.sender) + str(self.receiver) + \
-            str(self.amount) + str(self.timestamp)
+        hashString = str(self.bl_idx) + str(self.sctx_idx) + \
+            str(self.sender) + str(self.receiver) + str(self.timestamp)
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
 
