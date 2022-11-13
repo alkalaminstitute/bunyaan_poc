@@ -40,7 +40,7 @@ class Transaction (object):
         if (self.sender is self.receiver):
             print("Sender is the same as the receiver")
             return False
-        if not self.signature or len(self.signature) is 0:
+        if not self.signature or len(self.signature) == 0:
             print("No Signature!")
             return False
 

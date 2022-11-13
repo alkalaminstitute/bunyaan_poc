@@ -59,6 +59,7 @@ class Blockchain:
         # broadcast to all other nodes
         for node in self.nodes:
             url = "http://"+node+"/replace_chain"
+            print("THE URL" + url)
             response = requests.get(url)
             response.json()
 
@@ -166,14 +167,16 @@ class Blockchain:
     #
 
     def add_node(self, address):  # New
-        parsed_url = urlparse(address)
-        self.nodes.add(parsed_url.netloc)
+        self.nodes.add(address)
+        # parsed_url = urlparse(address)
+        # self.nodes.add(parsed_url.netloc)
 
     def replace_chain(self):  # New
         network = self.nodes
         longest_chain = None
         max_length = len(self.chain)
-        for node in network:
+        for node in self.nodes:
+            print("NODE IS BCHAIN" + str(self.nodes))
             response = requests.get(f'http://{node}/get_chain')
             if response.status_code == 200:
                 length = response.json()['length']

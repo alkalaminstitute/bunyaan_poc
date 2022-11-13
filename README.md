@@ -66,9 +66,9 @@ The frontend running on 3002 should point to 8002
 Now you can start the frontend for all the nodes in their respective folders as such:
 
 ```
-npm start --port 3000
-npm start --port 3001
-npm start --port 3002
+PORT=3000 npm start
+PORT=3001 npm start
+PORT=3002 npm start
 ```
 
 Once everything is running, you can start adding transactions and smartcontracts. After mining transactions in one node, you should see them in all of the other nodes as well.

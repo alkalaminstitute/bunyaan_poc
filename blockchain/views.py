@@ -1,6 +1,10 @@
+import socket
+import sys
+import os
 import json
 import types
 import requests
+from urllib import request
 from uuid import uuid4
 from urllib.parse import urlparse
 from django.http import JsonResponse, HttpResponse, HttpRequest
@@ -14,19 +18,44 @@ from blockchain.modules.MusharakSmartContract import MusharakSmartContract
 from blockchain.modules.Lender import Lender
 from blockchain.modules.Property import Property
 from blockchain.modules.ScTransaction import ScTransaction
+from django.urls import path
+from django.urls import re_path as url
 
 
 # Creating our Blockchain
 blockchain = Blockchain()
 
-# adding nodes for testing purposes
-blockchain.nodes.add('127.0.0.1:8000')
-blockchain.nodes.add('127.0.0.1:8001')
-blockchain.nodes.add('127.0.0.1:8002')
-
 # Creating an address for the node running our server
 node_address = str(uuid4()).replace('-', '')  # New
 root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'  # New
+
+# get running server url
+
+prefix_url = "http://"
+server_url = socket.gethostbyname('localhost')
+server_port = sys.argv[-1]
+full_url = prefix_url + server_url + ":" + server_port
+print(full_url)
+
+# add blockchain to peer-to-peer network
+my_url = {
+    "nodes": [server_url+":"+server_port]
+}
+
+print(my_url)
+
+blockchain.nodes.add(server_url+":"+server_port)
+
+if (int(server_port) != 8000):
+    response = requests.post(
+        f'http://127.0.0.1:8000/connect_node', json=my_url)
+    print("POST RESPONSE")
+    received_json = response.json()
+    blockchain_nodes = received_json.get('blockchain_nodes')
+    print(blockchain_nodes[0])
+    for node in blockchain_nodes:
+        blockchain.add_node(node)
+    blockchain.replace_chain()
 
 
 def generate_keys():
@@ -513,10 +542,19 @@ def connect_node(request):  # New
         if nodes is None:
             return "No node", HttpResponse(status=400)
         for node in nodes:
+            print("NODES ARE" + node)
             blockchain.add_node(node)
             blockchain.replace_chain()
-        response = {'message': 'All the nodes are now connected. The Sudocoin Blockchain now contains the following nodes:',
-                    'total_nodes': list(blockchain.nodes)}
+
+        # send all of the blockchains current nodes
+        # node_url = {
+        #     "nodes": list(blockchain.nodes)
+        # }
+        # response = requests.post(f'http://{node}/connect_node', json=node_url)
+        # print("CONNECTING ALL NODES" + response.reason)
+
+        response = {'message': 'All the nodes are now connected. The Bunyaan Blockchain now contains the following nodes:',
+                    'blockchain_nodes': list(blockchain.nodes)}
     return JsonResponse(response)
 
 # Replacing the chain by the longest chain if needed
