@@ -34,17 +34,18 @@ root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'  # New
 prefix_url = "http://"
 server_url = socket.gethostbyname('localhost')
 server_port = sys.argv[-1]
-full_url = prefix_url + server_url + ":" + server_port
+node_address = server_url+":"+server_port
+full_url = prefix_url + node_address
 print(full_url)
 
 # add blockchain to peer-to-peer network
 my_url = {
-    "nodes": [server_url+":"+server_port]
+    "nodes": [node_address]
 }
 
 print(my_url)
 
-blockchain.nodes.add(server_url+":"+server_port)
+blockchain.nodes.add(node_address)
 
 if (int(server_port) != 8000):
     response = requests.post(
@@ -541,20 +542,33 @@ def connect_node(request):  # New
         nodes = received_json.get('nodes')
         if nodes is None:
             return "No node", HttpResponse(status=400)
+
         for node in nodes:
             print("NODES ARE" + node)
             blockchain.add_node(node)
             blockchain.replace_chain()
 
-        # send all of the blockchains current nodes
-        # node_url = {
-        #     "nodes": list(blockchain.nodes)
-        # }
-        # response = requests.post(f'http://{node}/connect_node', json=node_url)
-        # print("CONNECTING ALL NODES" + response.reason)
+        # if master broadcast new node to all connected nodes (this will avoid loops)
+        # another option would be to return a traversed nodes array which are skipped by the node
+        # when broadcasting to avoid loops.
+        if int(server_port) == 8000:
+            for n in blockchain.nodes:
+                # add a check to make sure you skip the calling node and the
+                # nodes it is connected to, to avoide loops
+                print(n)
+                if n in nodes or n == node_address:
+                    continue
+                else:
+                    node_url = {
+                        "nodes": nodes
+                    }
+                    res = requests.post(
+                        f'http://{n}/connect_node', json=node_url)
+                    print("CONNECTING ALL NODES" + res.reason)
 
         response = {'message': 'All the nodes are now connected. The Bunyaan Blockchain now contains the following nodes:',
                     'blockchain_nodes': list(blockchain.nodes)}
+
     return JsonResponse(response)
 
 # Replacing the chain by the longest chain if needed

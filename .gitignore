@@ -6,5 +6,5 @@ blockchain/modules/__pycache__/Blockchain.cpython-310.pyc
 blockchain/modules/__pycache__/Transaction.cpython-310.pyc
 bunyaan/__pycache__/settings.cpython-310.pyc
 ./bunyaan/__pycache__/
-./node_modules
-./frontend/node_modules
+node_modules
+frontend/node_modules
