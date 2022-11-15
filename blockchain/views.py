@@ -553,9 +553,8 @@ def connect_node(request):  # New
         # when broadcasting to avoid loops.
         if int(server_port) == 8000:
             for n in blockchain.nodes:
-                # add a check to make sure you skip the calling node and the
+                # add a check to make sure you skip the running node, the calling node, and the
                 # nodes it is connected to, to avoide loops
-                print(n)
                 if n in nodes or n == node_address:
                     continue
                 else:
