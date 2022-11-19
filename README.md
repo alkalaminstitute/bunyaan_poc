@@ -11,11 +11,7 @@ virtualenv venv
 source venv/bin/activate
 ```
 
-3. Install django
-
-```
-pip install Django==4.1.3
-```
+3. Install requirements per requirements.txt
 
 4. Clone the Bunyaan repo:
 
@@ -34,18 +30,18 @@ python manage.py runserver 8000
 
 ```
 
-In terminal 2 run:
+In terminal 2 run change directories to the frontend folder, remove any pre-existing node:
 
 ```
 cd frontend
 rm -r node_modules
-nmp install
+npm install
 npm start --port 3000
 ```
 
-After running npm start you should see a widnow open that will have the UI for interacting with the blockchain, which you started using python manage.py runserver
+After running npm start you should see a window open that will have the UI for interacting with the blockchain, which you started using python manage.py runserver
 
-6. To start multiple nodes you will have to repeat the steps above in a new folder. Make sure you start the blockchain and React on different ports for the additional nodes. For example if you have three nodes you will run:
+6. To start multiple nodes you will have to repeat the steps above with a repo clone in a new folder. Make sure you start the blockchain and React on different ports for the additional nodes. For example if you have three nodes you will run:
 
 ```
 python manage.py runserver 8000
@@ -53,7 +49,7 @@ python manage.py runserver 8001
 python manage.py runserver 8002
 ```
 
-There is an additonal step when it comes to React. You will have to make sure the frontend code is pointing to the corresponding blockchain instance. To do that you will have to change the following line in the /frontend/package.json to point to the right blockchain instance:
+There is an additional step when it comes to React. You will have to make sure the frontend code is pointing to the corresponding blockchain instance. To do that you will have to change the following line in the /frontend/package.json to point to the right blockchain instance:
 
 ```
 "proxy": "http://127.0.0.1:8000"

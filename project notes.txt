@@ -1,0 +1,32 @@
+_____________________________________________________________________
+6:02 PM 11/14/2022
+
+Notes from running code:
+
+-	Do we copy/paste frontend folder and rerun deleting node_modules and starting a new node?
+-	Block details hyperlink do not work
+
+
+_____________________________________________________________________
+11/13/22
+-Read up on transferring property titles via NFTs
+-Everyone to have repo running (front and backend)
+-Create a roadmap for project (milestones. Where we want to be certain times and what 
+	tasks will be accomplished).
+
+-Is GitHub going to be
+-XP cycles (fast paced. like 2 weeks intervals we revisit the entire project and 
+		all its useability and issues)
+
+-Pin the versions of python packages for the code
+
+-Imam to fix frontend folder for us. This is what is keeping us from executing repo
+	successfully.
+
+
+Attendance:
+-Abdulwahid
+-Souhayl
+-Omair
+-Ahmed
+
