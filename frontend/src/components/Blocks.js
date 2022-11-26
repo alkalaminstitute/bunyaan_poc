@@ -10,7 +10,7 @@ function Blocks({ blockchain }) {
         <Block key={blockchain.chain.indexOf(block)}
             index={blockchain.chain.indexOf(block)}
             hash={block.hash}
-            prevHash={block.prev_hash}
+            prevHash={block.previous_hash}
             nonce={block.nonce}
             timestamp={block.timestamp}
         />

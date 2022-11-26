@@ -1,11 +1,6 @@
 blockchain_module_n.txt
 blockchain_private_e.txt
 blockchain_public_e.txt
-blockchain/__pycache__/views.cpython-310.pyc
-blockchain/modules/__pycache__/Blockchain.cpython-310.pyc
-blockchain/modules/__pycache__/Transaction.cpython-310.pyc
-bunyaan/__pycache__/settings.cpython-310.pyc
-./bunyaan/__pycache__/
 *.pyc
 .*
 db.sqlite3
