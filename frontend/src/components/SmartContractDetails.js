@@ -46,6 +46,29 @@ function SmartContractDetails(props) {
         );
     }
 
+    function BecomePartner(props) {
+        return (
+            <button className='card__btn'>
+                Become a Partner
+            </button>
+        );
+    }
+
+    function PayRent(props) {
+        return (
+            <button className='card__btn'>
+                Pay Rent
+            </button>
+        );
+    }
+
+    let button;
+    if (loanRemaining == 0) {
+        button = <PayRent onClick={handlePayRent} />;
+    } else {
+        button = <BecomePartner onClick={handleAddPartner} />;
+    }
+
     return (
         <div className='content_scd'>
             <div className='card'>
@@ -64,8 +87,7 @@ function SmartContractDetails(props) {
                     <p className='card__timestamp'><b>Loan Amount</b></p>
                     <input className="small_input_box" ref={amount} type="text" id="fname" name="amount" placeholder="Amount"/>
                     <br />
-                    <button className='card__btn' onClick={handleAddPartner}>Become a Partner</button>
-                    <button className='card__btn' onClick={handlePayRent}>Pay Rent</button>
+                    {button}
                 </div>
             </div>
         </div>
