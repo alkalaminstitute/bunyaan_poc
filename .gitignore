@@ -4,3 +4,4 @@ blockchain_public_e.txt
 *.pyc
 .*
 db.sqlite3
+frontend/node_modules
