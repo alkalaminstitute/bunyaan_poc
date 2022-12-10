@@ -48,7 +48,7 @@ function SmartContractDetails(props) {
 
     function BecomePartner(props) {
         return (
-            <button className='card__btn'>
+            <button className='card__btn' onClick={handleAddPartner}>
                 Become a Partner
             </button>
         );
@@ -56,7 +56,7 @@ function SmartContractDetails(props) {
 
     function PayRent(props) {
         return (
-            <button className='card__btn'>
+            <button className='card__btn' onClick={handlePayRent}>
                 Pay Rent
             </button>
         );

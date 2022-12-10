@@ -4,7 +4,6 @@ from Crypto.PublicKey import RSA
 from urllib.parse import urlparse
 from blockchain.modules.Escrow import Escrow
 from blockchain.modules.Lender import Lender
-
 from blockchain.modules.MusharakSmartContract import MusharakSmartContract
 from blockchain.modules.ScTransaction import ScTransaction
 from .Block import Block
