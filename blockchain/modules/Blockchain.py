@@ -1,5 +1,5 @@
 from datetime import datetime
-import requests
+from pip._vendor import requests
 from Crypto.PublicKey import RSA
 from urllib.parse import urlparse
 from blockchain.modules.Escrow import Escrow

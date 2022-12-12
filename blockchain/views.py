@@ -3,7 +3,7 @@ import sys
 import os
 import json
 import types
-import requests
+from pip._vendor import requests
 from urllib import request
 from uuid import uuid4
 from urllib.parse import urlparse
@@ -43,17 +43,17 @@ my_url = {
     "nodes": [node_address]
 }
 
-print(my_url)
+# print(my_url)
 
 blockchain.nodes.add(node_address)
 
 if (int(server_port) != 8000):
     response = requests.post(
         f'http://127.0.0.1:8000/connect_node', json=my_url)
-    print("POST RESPONSE")
+    # print("POST RESPONSE")
     received_json = response.json()
     blockchain_nodes = received_json.get('blockchain_nodes')
-    print(blockchain_nodes[0])
+    # print(blockchain_nodes[0])
     for node in blockchain_nodes:
         blockchain.add_node(node)
     blockchain.replace_chain()
@@ -135,16 +135,16 @@ def object_tojson(ob):
     t = {}
     func = None
     if hasattr(ob, "func"):
-        print(ob.func.__name__)
+        # print(ob.func.__name__)
         t["func"] = ob.func.__name__
     for field in filter(lambda a: not a.startswith('__'), dir(ob)):
         attribute = getattr(ob, field)
         if (not callable(attribute)):
             if type(attribute) is Property:
                 t[str(field)] = object_tojson(attribute)
-                print("PROPERTY CHANGED")
+                # print("PROPERTY CHANGED")
             elif type(attribute) is list:
-                print("LENDER CHANGED")
+                # print("LENDER CHANGED")
                 lenders = []
                 for lender in attribute:
                     lnd = object_tojson(lender)
