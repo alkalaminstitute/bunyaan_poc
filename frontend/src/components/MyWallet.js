@@ -9,7 +9,7 @@ function MyWallet({pubKey}) {
     var request = {
         wallet_address: pubKey,
     }
-
+    console.log(pubKey)
     useEffect(() => {
         axios.post('/get_wallet_balance', request)
             .then(res => {
