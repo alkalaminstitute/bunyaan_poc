@@ -25,39 +25,6 @@ from django.urls import re_path as url
 # Creating our Blockchain
 blockchain = Blockchain()
 
-# Creating an address for the node running our server
-node_address = str(uuid4()).replace('-', '')  # New
-root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'  # New
-
-# get running server url
-
-prefix_url = "http://"
-server_url = socket.gethostbyname('localhost')
-server_port = sys.argv[-1]
-node_address = server_url+":"+server_port
-full_url = prefix_url + node_address
-print(full_url)
-
-# add blockchain to peer-to-peer network
-my_url = {
-    "nodes": [node_address]
-}
-
-# print(my_url)
-
-blockchain.nodes.add(node_address)
-
-if (int(server_port) != 8000):
-    response = requests.post(
-        f'http://127.0.0.1:8000/connect_node', json=my_url)
-    # print("POST RESPONSE")
-    received_json = response.json()
-    blockchain_nodes = received_json.get('blockchain_nodes')
-    # print(blockchain_nodes[0])
-    for node in blockchain_nodes:
-        blockchain.add_node(node)
-    blockchain.replace_chain()
-
 
 def generate_keys():
 
@@ -115,20 +82,41 @@ def generate_keys():
 keyPair = generate_keys()
 publicKey = keyPair.publickey().exportKey("PEM").decode()
 
-# .decode().replace(
-#     "-----BEGIN PUBLIC KEY-----", "")
-# publicKey = publicKey.replace(
-#     "-----END PUBLIC KEY-----", "")
-# print(type(publicKey))
+# get running server url
 
+prefix_url = "http://"
+server_url = socket.gethostbyname('localhost')
+server_port = sys.argv[-1]
+node_address = server_url+":"+server_port
+full_url = prefix_url + node_address
+print(full_url)
 
-# def to_block(block):
-#     print(type(block))
-#     if type(block) is dict:
-#         return Block(block["timestamp"],
-#                      block["data"], block["prev_hash"])
-#     else:
-#         return block
+# add blockchain to peer-to-peer network
+my_url = {
+    # will also add the public_key/wallet_key of this node for testing purposes
+    "nodes": [[node_address, publicKey]]
+}
+
+# print(my_url)
+
+blockchain.nodes.add(node_address)
+wallet_addresses = set()
+wallet_addresses.add(publicKey)
+
+if (int(server_port) != 8000):
+    response = requests.post(
+        f'http://127.0.0.1:8000/connect_node', json=my_url)
+    # print("POST RESPONSE")
+    received_json = response.json()
+    blockchain_nodes = received_json.get('blockchain_nodes')
+    master_pk = received_json.get('my_pk')
+    wallet_addresses.add(master_pk)
+    # print(blockchain_nodes[0])
+    for adr in wallet_addresses:
+        wallet_addresses.add(adr)
+    for node in blockchain_nodes:
+        blockchain.add_node(node)
+    blockchain.replace_chain()
 
 
 def object_tojson(ob):
@@ -155,6 +143,12 @@ def object_tojson(ob):
     return t
 
 # Mining a new block
+
+
+def get_wallets(request):
+    if request.method == 'GET':
+        response = {'wallets': list(wallet_addresses)}
+    return JsonResponse(response)
 
 
 @csrf_exempt
@@ -282,10 +276,14 @@ def add_transaction(request):  # New
         if not all(key in received_json for key in transaction_keys):
             return 'Some elements of the transaction are missing', HttpResponse(status=400)
 
+        sender = received_json.get('sender')
+        receiver = received_json.get('receiver')
+        amount = received_json.get('amount')
+
         transaction = Transaction(
-            received_json.get('sender'),
-            received_json.get('receiver'),
-            received_json.get('amount'))
+            sender,
+            receiver,
+            amount)
 
         transaction.sign_transaction(keyPair)
 
@@ -542,20 +540,22 @@ def connect_node(request):  # New
         nodes = received_json.get('nodes')
         if nodes is None:
             return "No node", HttpResponse(status=400)
-
+        nodes_adds = []
         for node in nodes:
-            print("NODES ARE" + node)
-            blockchain.add_node(node)
+            # print("NODES ARE" + node)
+            nodes_adds.append(node[0])
+            blockchain.add_node(node[0])
+            wallet_addresses.add(node[1])
             blockchain.replace_chain()
 
         # if master broadcast new node to all connected nodes (this will avoid loops)
         # another option would be to return a traversed nodes array which are skipped by the node
         # when broadcasting to avoid loops.
         if int(server_port) == 8000:
-            for n in blockchain.nodes:
+            for (i, n) in enumerate(blockchain.nodes):
                 # add a check to make sure you skip the running node, the calling node, and the
                 # nodes it is connected to, to avoide loops
-                if n in nodes or n == node_address:
+                if n in nodes_adds or n == node_address:
                     continue
                 else:
                     node_url = {
@@ -566,7 +566,9 @@ def connect_node(request):  # New
                     print("CONNECTING ALL NODES" + res.reason)
 
         response = {'message': 'All the nodes are now connected. The Bunyaan Blockchain now contains the following nodes:',
-                    'blockchain_nodes': list(blockchain.nodes)}
+                    'blockchain_nodes': list(blockchain.nodes),
+                    'wallet_addresses': list(wallet_addresses),
+                    "my_pk": publicKey}
 
     return JsonResponse(response)
 
