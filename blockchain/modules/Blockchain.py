@@ -113,7 +113,7 @@ class Blockchain:
         return True
 
     def get_balance(self, wallet_address):
-        balance = 0
+        balance = 1000
         for i in range(1, len(self.chain)):
             block = self.chain[i]
             try:
@@ -124,7 +124,7 @@ class Blockchain:
                     else:
                         if (transaction.sender == wallet_address):
                             balance -= int(transaction.amount)
-                        if (transaction.reciever == wallet_address):
+                        if (transaction.receiver == wallet_address):
                             balance += int(transaction.amount)
             except AttributeError:
                 print("no transaction")

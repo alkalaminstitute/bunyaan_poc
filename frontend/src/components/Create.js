@@ -2,8 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
 function Create({ pubKey }) {
-    const receiverAddress = useRef()
+    const [receiverAddress, setReceiverAddress] = useState("ADDRESS");
     const transactionAmount = useRef()
+    const [wallets, setWallets] = useState([])
+    const [isLoading, setLoading] = useState(true);
+
+    useEffect(() => {
+        axios.get('/get_wallets')
+        .then(res => {
+            setWallets(res.data.wallets)
+            setLoading(false)
+        })
+  }, [])
 
     var request = {
         "sender": pubKey,
@@ -12,12 +22,12 @@ function Create({ pubKey }) {
         "timestamp": Date.now(),
         "signature": ""
     }
-    console.log("HELLO" + pubKey.replace(/(\r\n|\n|\r)/gm, ""))
+
     // must also include transaction signature in request
 
     function handleAddTransaction(e) {
-        if (receiverAddress.current.value === '' || transactionAmount.current.value === '' ) return
-        request.receiver = receiverAddress.current.value;
+        if (receiverAddress.value === '' || transactionAmount.current.value === '' ) return
+        request.receiver = receiverAddress;
         request.amount = transactionAmount.current.value
         axios.post('/add_transaction', request)
             .then(res => {
@@ -27,8 +37,14 @@ function Create({ pubKey }) {
         window.location.reload();
     }
 
-    console.log(pubKey)
 
+    const handleChange = (e) => {
+        setReceiverAddress(e.target.value)
+    }
+
+    // if (isLoading) {
+    //     return <div className="Create">Loading Wallets...</div>;
+    // }
     return (
         <div className='content'>
             <h3>Create a transaction</h3>
@@ -39,9 +55,16 @@ function Create({ pubKey }) {
                 <input disabled type="text" id="fname" name="firstname" placeholder={pubKey}/>
                 <br />
                 <lable>To  </lable>
-                <br />
-                <input ref={receiverAddress} type="text" placeholder="Recepient" />
-                <br />
+                <br /><br />
+                <select className='wallet_selector' value={receiverAddress} onChange={handleChange} >
+                    <option>Please Select a Wallet</option>
+                    {wallets.map((wallet) => (
+                        <option value={wallet}>{wallet}</option>
+                    ))}
+                </select>
+                <br /><br />
+                <p>{`You selected ${receiverAddress}`}</p>
+                <br /><br />
                 <lable>Amount  </lable>
                 <br />
                 <input ref={transactionAmount} type="text" placeholder="Amount" />
