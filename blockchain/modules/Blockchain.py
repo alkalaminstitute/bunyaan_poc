@@ -171,7 +171,6 @@ class Blockchain:
         # self.nodes.add(parsed_url.netloc)
 
     def replace_chain(self):  # New
-        network = self.nodes
         longest_chain = None
         max_length = len(self.chain)
         for node in self.nodes:
