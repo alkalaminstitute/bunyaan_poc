@@ -546,7 +546,7 @@ def connect_node(request):  # New
             nodes_adds.append(node[0])
             blockchain.add_node(node[0])
             wallet_addresses.add(node[1])
-            blockchain.replace_chain()
+        # blockchain.replace_chain()
 
         # if master broadcast new node to all connected nodes (this will avoid loops)
         # another option would be to return a traversed nodes array which are skipped by the node
