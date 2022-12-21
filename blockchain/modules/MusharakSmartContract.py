@@ -133,8 +133,9 @@ class MusharakSmartContract:
     def set_rent(self, rent):
         self.property.rent = rent
 
-    def add_lender(self, lender):
+    def add_lender(self, lender, loan_amount):
         self.lenders.append(lender)
+        self.update_balance(loan_amount)
 
     def update_balance(self, loan_amount):
         self.balance += loan_amount
@@ -144,12 +145,14 @@ class MusharakSmartContract:
     def set_escrow(self, name, escrow_address, property_id):
         self.escrow = Escrow(name, escrow_address, property_id)
 
-    def distribute_rent(self):
+    def distribute_rent(self, keyPair):
         txs = []
         for lender in self.lenders:
             percentage = lender.loaned_amount/self.property.price
+            # rent is set to 30 dinars by default
             amt = percentage * self.property.rent
-            tx = Transaction(self.wallet_address, lender.wallet_address, amt)
+            tx = Transaction(self.sender, lender.wallet_address, amt)
+            tx.sign_transaction(keyPair)
             txs.append(tx)
         return txs
 

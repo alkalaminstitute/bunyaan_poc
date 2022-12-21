@@ -18,6 +18,7 @@ class Blockchain:
         self.difficulty = 2
         self.pending_transactions = []
         self.mining_reward = 10
+        self.url = ""
         self.nodes = set()  # New
 
     def create_genesis_block(self):
@@ -49,18 +50,40 @@ class Blockchain:
 
         print("Block Successfully Mined")
 
-        self.chain.append(block)
-
         # rewarding the miner in the next block
         # If the miner adds extra rewards other nodes in the network will ignore it
         self.pending_transactions = []
 
         # broadcast to all other nodes
+        count = 0
+        block_json = self.object_tojson(block)
+        data_json = block_json['data']
+        print('data_json')
+        print(data_json)
+        payload = {
+            # ['timestamp', 'data', 'previous_hash', 'hash']
+            "timestamp":  block.timestamp,
+            "data": data_json,
+            "previous_hash": block.previous_hash,
+            "hash": block.hash
+        }
+
         for node in self.nodes:
-            url = "http://"+node+"/replace_chain"
-            print("THE URL" + url)
-            response = requests.get(url)
-            response.json()
+            if (node != self.url):
+                url = "http://"+node+"/block_broadcast"
+                print("THE URL" + url)
+                response = requests.post(
+                    url, json=payload)
+                # print("POST RESPONSE")
+                received_json = response.json()
+                block_added = received_json.get('block_added')
+                print("noded accepted block")
+                print(block_added)
+
+                # response = requests.post(url)
+                # response.json()
+
+        self.chain.append(block)
 
         return block
 
@@ -119,8 +142,12 @@ class Blockchain:
             try:
                 for j in range(0, len(block.data)):
                     transaction = block.data[j]
-                    if (hasattr(transaction, "property") or hasattr(transaction, "func")):
-                        continue
+                    if hasattr(transaction, "property"):
+                        if (transaction.sender == wallet_address):
+                            balance -= int(transaction.downpayment)
+                    elif hasattr(transaction, "func"):
+                        if (transaction.sender == wallet_address):
+                            balance -= int(transaction.amount)
                     else:
                         if (transaction.sender == wallet_address):
                             balance -= int(transaction.amount)
@@ -212,61 +239,7 @@ class Blockchain:
                 block.nonce = blockJSON['nonce']
                 chain.append(block)
             else:
-                tArr = []
-                for tJSON in blockJSON['data']:
-                    transaction = None
-                    # Check if it is a smartcontract
-                    if "property" in tJSON:
-                        lenders = []
-                        if (len(tJSON['lenders']) != 0):
-                            for lend in tJSON['lenders']:
-                                l = Lender(lend['wallet_address'],
-                                           int(lend['loaned_amount']))
-                                lenders.append(l)
-
-                        esc = tJSON['escrow']
-                        escrow = esc
-                        if tJSON['escrow'] is not None:
-                            escrow = Escrow(
-                                esc['name'], esc['wallet_address'], esc['property_id'])
-
-                        prop = tJSON['property']
-                        property = Property(prop['address'],
-                                            prop['price'], prop['seller'], prop['rent'])
-                        property.property_id = prop['property_id']
-
-                        transaction = MusharakSmartContract(
-                            int(tJSON['bl_idx']),
-                            int(tJSON['sctx_idx']),
-                            tJSON['wallet_address'],
-                            tJSON['sender'], property,
-                            int(tJSON['downpayment']),
-                            int(tJSON['loan_granted']),
-                            lenders, escrow, tJSON['timestamp'])
-
-                        transaction.signature = tJSON['signature']
-                        transaction.hash = tJSON['hash']
-                    # Check if it is smartcontract transaction
-                    elif "func" in tJSON:
-                        block = self.chain[int(tJSON['bl_idx'])]
-                        smartcontract = block.data[int(tJSON['sctx_idx'])]
-                        # getting the function using the funcname passed from get_chain
-                        func = getattr(smartcontract, tJSON['func'])
-
-                        transaction = ScTransaction(
-                            tJSON['bl_idx'], tJSON['sctx_idx'], tJSON['sender'],
-                            tJSON['receiver'], func, int(tJSON['amount']), tJSON['timestamp'])
-                        transaction.signature = tJSON['signature']
-                        transaction.hash = tJSON['hash']
-                    # If none of the above, it is a normal transaction
-                    else:
-                        # sender, receiver, amount, timestamp
-                        transaction = Transaction(tJSON['sender'], tJSON['receiver'], int(
-                            tJSON['amount']), tJSON['timestamp'])
-                        transaction.signature = tJSON['signature']
-                        transaction.hash = tJSON['hash']
-
-                    tArr.append(transaction)
+                tArr = self.json_to_transactions(blockJSON['data'])
 
                 block = Block(blockJSON['timestamp'], tArr)
                 print("HASH#####################")
@@ -278,3 +251,86 @@ class Blockchain:
                 chain.append(block)
 
         return chain
+
+    def json_to_transactions(self, tArrayJSON):
+
+        tArr = []
+        for tJSON in tArrayJSON:
+            transaction = None
+            # Check if it is a smartcontract
+            if "property" in tJSON:
+                lenders = []
+                if (len(tJSON['lenders']) != 0):
+                    for lend in tJSON['lenders']:
+                        l = Lender(lend['wallet_address'],
+                                   int(lend['loaned_amount']))
+                        lenders.append(l)
+
+                esc = tJSON['escrow']
+                escrow = esc
+                if tJSON['escrow'] is not None:
+                    escrow = Escrow(
+                        esc['name'], esc['wallet_address'], esc['property_id'])
+
+                prop = tJSON['property']
+                property = Property(prop['address'],
+                                    prop['price'], prop['seller'], prop['rent'])
+                property.property_id = prop['property_id']
+
+                transaction = MusharakSmartContract(
+                    int(tJSON['bl_idx']),
+                    int(tJSON['sctx_idx']),
+                    tJSON['wallet_address'],
+                    tJSON['sender'], property,
+                    int(tJSON['downpayment']),
+                    int(tJSON['loan_granted']),
+                    lenders, escrow, tJSON['timestamp'])
+
+                transaction.signature = tJSON['signature']
+                transaction.hash = tJSON['hash']
+            # Check if it is smartcontract transaction
+            elif "func" in tJSON:
+                block = self.chain[int(tJSON['bl_idx'])]
+                smartcontract = block.data[int(tJSON['sctx_idx'])]
+                # getting the function using the funcname passed from get_chain
+                func = getattr(smartcontract, tJSON['func'])
+
+                transaction = ScTransaction(
+                    tJSON['bl_idx'], tJSON['sctx_idx'], tJSON['sender'],
+                    tJSON['receiver'], func, int(tJSON['amount']), tJSON['timestamp'])
+                transaction.signature = tJSON['signature']
+                transaction.hash = tJSON['hash']
+            # If none of the above, it is a normal transaction
+            else:
+                # sender, receiver, amount, timestamp
+                transaction = Transaction(tJSON['sender'], tJSON['receiver'], int(
+                    tJSON['amount']), tJSON['timestamp'])
+                transaction.signature = tJSON['signature']
+                transaction.hash = tJSON['hash']
+
+            tArr.append(transaction)
+
+        return tArr
+
+    def object_tojson(self, ob):
+        jsonOb = {}
+        func = None
+        if hasattr(ob, "func"):
+            # print(ob.func.__name__)
+            jsonOb["func"] = ob.func.__name__
+        for field in filter(lambda a: not a.startswith('__'), dir(ob)):
+            attribute = getattr(ob, field)
+            if (not callable(attribute)):
+                if type(attribute) is Property:
+                    jsonOb[str(field)] = self.object_tojson(attribute)
+                    # print("PROPERTY CHANGED")
+                elif type(attribute) is list:
+                    # print("LENDER CHANGED")
+                    lenders = []
+                    for lender in attribute:
+                        lnd = self.object_tojson(lender)
+                        lenders.append(lnd)
+                    jsonOb[str(field)] = lenders
+                else:
+                    jsonOb[str(field)] = attribute
+        return jsonOb

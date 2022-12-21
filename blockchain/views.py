@@ -99,6 +99,7 @@ my_url = {
 
 # print(my_url)
 
+blockchain.url = node_address
 blockchain.nodes.add(node_address)
 wallet_addresses = set()
 wallet_addresses.add(publicKey)
@@ -172,6 +173,56 @@ def mine_block(request):
                     'data': transactions,
                     'hash': block.hash}
         blockchain.pending_transactions = []
+    return JsonResponse(response)
+
+
+@csrf_exempt
+def block_broadcast(request):
+    if request.method == 'POST':
+        received_json = json.loads(request.body)
+
+        block_keys = ['timestamp', 'data', 'previous_hash', 'hash']
+
+        if not all(key in received_json for key in block_keys):
+            return 'Some elements of the transaction are missing', HttpResponse(status=400)
+
+        timestamp = received_json.get('timestamp')
+        dataJson = received_json.get('data')
+        previous_hash = received_json.get('previous_hash')
+        hash = received_json.get('hash')
+
+        data = blockchain.json_to_transactions(dataJson)
+        print(dataJson)
+        print("data")
+        print(data)
+
+        for tx in data:
+            # if any of the transactions are sc transactions update sc
+            if hasattr(tx, "func"):
+                block = blockchain.chain[tx.bl_idx]
+                sc = block.data[tx.sctx_idx]
+                sc_func = tx.func.__name__
+                attribute = getattr(sc, sc_func)
+                lender = Lender(tx.sender, tx.amount)
+                attribute(lender, tx.amount)
+                # print(ob.func.__name__)
+
+        block = Block(
+            timestamp,
+            data,
+            previous_hash
+        )
+        block.hash = hash
+
+        block_added = False
+
+        if (block.has_valid_transactions()):
+            blockchain.chain.append(block)
+            block_added = True
+
+        response = {'message': 'Congratulations, you just mined a block!',
+                    'block_added': block_added}
+
     return JsonResponse(response)
 
 # Getting the full Blockchain
@@ -410,9 +461,9 @@ def pay_rent(request):
 
         block = blockchain.chain[int(bl_idx)]
         smartcontract = block.data[int(sctx_idx)]
-        rent_transactions = smartcontract.distribute_rent()
+        rent_transactions = smartcontract.distribute_rent(keyPair)
         for tx in rent_transactions:
-            blockchain.pending_transactions.append(tx)
+            blockchain.add_transaction(tx)
 
         response = {'payed': True}
 
@@ -442,23 +493,17 @@ def add_lender_tocontract(request):
 
         # each of these transactions will incurr a transaction fee
         st_add_lender = ScTransaction(bl_idx, sctx_idx, lender_wallet_address,
-                                      smartcontract.wallet_address, smartcontract.add_lender)
+                                      smartcontract.wallet_address, smartcontract.add_lender, loan_amount)
         st_add_lender.sign_transaction(keyPair)
-
-        st_update_balance = ScTransaction(bl_idx, sctx_idx, lender_wallet_address,
-                                          smartcontract.wallet_address, smartcontract.update_balance, loan_amount)
-        st_update_balance.sign_transaction(keyPair)
 
         # add SmartcontractTrans to blockchain so other nodes can excute it as well
         blockchain.pending_transactions.append(st_add_lender)
-        blockchain.pending_transactions.append(st_update_balance)
 
         # When other nodes are synching the block to their blockchain, after adding the new block
         # they should check for all ScTransaction and call the code in them on the right smartcontract
 
         lender = Lender(lender_wallet_address, loan_amount)
-        smartcontract.add_lender(lender)
-        smartcontract.update_balance(loan_amount)
+        smartcontract.add_lender(lender, loan_amount)
 
         # loan_transaction = Transaction(received_json.get('lender_wallet_address'),
         #                                smartcontract.wallet_address,
@@ -523,6 +568,7 @@ def initiate_escrow(request):
         escrow_tx = Transaction(smartcontract.sc_address,
                                 received_json.get('escrow_address'),
                                 0.03*smartcontract.property.price)
+        # SIGN TRANSACTION dont forget
         blockchain.pending_transactions.append(escrow_tx)
 
         paid_to_escrow = 0.03*smartcontract.property.price
