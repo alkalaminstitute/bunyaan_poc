@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const LOCAL_STORAGE_KEY = 'pending'
 
-function Pending(pending, pubKey) {
+function Pending({ pending, pubKey }) {
     console.log(pubKey)
     const [pendingTransactions, setpendingTransactions] = useState([])
     // const transactionRef = useRef()
@@ -19,7 +19,7 @@ function Pending(pending, pubKey) {
     }, [pendingTransactions])
 
     const request = {
-        "miner_address": {pubKey}
+        "miner_address": pubKey
     }
 
     function mineTransactions(e) {
@@ -33,7 +33,7 @@ function Pending(pending, pubKey) {
 
     return (
         <div className='content'>
-            <Transactions txs={pending.pending} />
+            <Transactions txs={pending} />
             <button className='mine-btn' onClick={mineTransactions}>Mine Transaction</button>
         </div>
     );

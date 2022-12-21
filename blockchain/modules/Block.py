@@ -38,6 +38,18 @@ class Block (object):
         print("Block Mined!")
         return True
 
+    def is_valid_block(self):
+
+        if (self.hash != self.calculate_hash()):
+            "Hash is invalid"
+            return False
+
+        if (not self.has_valid_transactions()):
+            "Block has invalid transactions"
+            return False
+
+        return True
+
     def has_valid_transactions(self):
         for i in range(0, len(self.data)):
             transaction = self.data[i]

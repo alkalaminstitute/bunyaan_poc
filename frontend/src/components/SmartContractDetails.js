@@ -64,9 +64,9 @@ function SmartContractDetails(props) {
 
     let button;
     if (loanRemaining == 0) {
-        button = <PayRent onClick={handlePayRent} />;
+        button = <PayRent/>;
     } else {
-        button = <BecomePartner onClick={handleAddPartner} />;
+        button = <BecomePartner/>;
     }
 
     return (
