@@ -40,11 +40,11 @@ function Navbar({ blockchain, pubKey }) {
                             Start Smart Contract
                         </NavLink>
                     </li>
-                    <li>
+                    {/* <li>
                         <NavLink to="/getsmartcontract" activeClassName="active">
                             Get Smart Contract
                         </NavLink>
-                    </li>
+                    </li> */}
                     <li>
                         <NavLink to="/invest" activeClassName="active">
                             Musharakh Investments
@@ -57,7 +57,7 @@ function Navbar({ blockchain, pubKey }) {
                 <Route path="/pending" element={ <Pending pending={blockchain.pending_transactions} pubKey={pubKey} /> } />
                 <Route path="/create" element={<Create pubKey={pubKey} />} />
                 <Route path="/beginsmartcontract" element={<BeginSmartContract pubKey={pubKey} />} />
-                <Route path="/getsmartcontract" element={<ManageContract pubKey={pubKey} />} />
+                {/* <Route path="/getsmartcontract" element={<ManageContract pubKey={pubKey} />} /> */}
                 <Route path="/invest" element={<Invest pubKey={pubKey} />} />
                 <Route path="/invest/scdetails" element={<SmartContractDetails pubKey={pubKey} />} />
                 <Route path="/mywallet" element={<MyWallet pubKey={pubKey} />} />

@@ -40,5 +40,8 @@ urlpatterns = [
     url('^connect_node$', views.connect_node, name="connect_node"),  # New
     url('^replace_chain$', views.replace_chain, name="replace_chain"),  # New
     url('^get_wallets$', views.get_wallets, name="get_wallets"),  # New
-    url('^block_broadcast$', views.block_broadcast, name="block_broadcast"),  # New
+    url('^block_broadcast$', views.block_broadcast,
+        name="block_broadcast"),  # New
+    url('^pendingtx_broadcast$', views.pendingtx_broadcast,
+        name="pendingtx_broadcast")
 ]

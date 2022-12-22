@@ -55,11 +55,33 @@ class Blockchain:
         self.pending_transactions = []
 
         # broadcast to all other nodes
+        self.broadcast_block(block)
+
+        self.chain.append(block)
+
+        return block
+
+    def add_transaction(self, transaction):  # New
+        if (not transaction.sender):
+            raise ValueError('Transacton must include from address')
+
+        is_valid = transaction.is_valid_transaction()
+
+        if (not is_valid):
+            raise ValueError('Cannot add invalid transaction to chain')
+
+        self.pending_transactions.append(transaction)
+
+        return "Transaction Added"
+
+    def broadcast_block(self, block):
+
         count = 0
         block_json = self.object_tojson(block)
         data_json = block_json['data']
         print('data_json')
         print(data_json)
+
         payload = {
             # ['timestamp', 'data', 'previous_hash', 'hash']
             "timestamp":  block.timestamp,
@@ -83,21 +105,20 @@ class Blockchain:
                 # response = requests.post(url)
                 # response.json()
 
-        self.chain.append(block)
-
-        return block
-
-    def add_transaction(self, transaction):  # New
-        if (not transaction.sender):
-            raise ValueError('Transacton must include from address')
-
-        is_valid = transaction.is_valid_transaction()
-
-        if (not is_valid):
-            raise ValueError('Cannot add invalid transaction to chain')
-
-        self.pending_transactions.append(transaction)
-        return "Transaction Added"
+    def broadcast_pendingtx(self, transaction):
+        # broadcast transaction to
+        payload = self.object_tojson(transaction)
+        for node in self.nodes:
+            if (node != self.url):
+                url = "http://"+node+"/pendingtx_broadcast"
+                print("THE URL" + url)
+                response = requests.post(
+                    url, json=payload)
+                # print("POST RESPONSE")
+                received_json = response.json()
+                transaction_added = received_json.get('transaction_added')
+                print("node accepted block")
+                print(transaction_added)
 
     def is_chain_valid(self, chain):
         # Check if the Genesis block hasn't been tampered with by comparing
