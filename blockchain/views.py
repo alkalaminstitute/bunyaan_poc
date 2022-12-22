@@ -111,9 +111,10 @@ if (int(server_port) != 8000):
     received_json = response.json()
     blockchain_nodes = received_json.get('blockchain_nodes')
     master_pk = received_json.get('my_pk')
+    wall_add = received_json.get('wallet_addresses')
     wallet_addresses.add(master_pk)
     # print(blockchain_nodes[0])
-    for adr in wallet_addresses:
+    for adr in wall_add:
         wallet_addresses.add(adr)
     for node in blockchain_nodes:
         blockchain.add_node(node)
@@ -218,10 +219,46 @@ def block_broadcast(request):
 
         if (block.has_valid_transactions()):
             blockchain.chain.append(block)
+            blockchain.pending_transactions = []
             block_added = True
 
-        response = {'message': 'Congratulations, you just mined a block!',
+        response = {'message': 'Block broadcast',
                     'block_added': block_added}
+
+    return JsonResponse(response)
+
+# Pending transaction broadcost to node pool:
+
+
+@csrf_exempt
+def pendingtx_broadcast(request):
+    if request.method == 'POST':
+        received_json = json.loads(request.body)
+
+        transaction_keys = ['sender', 'receiver',
+                            'amount', 'timestamp', 'signature', 'hash']
+
+        if not all(key in received_json for key in transaction_keys):
+            return 'Some elements of the transaction are missing', HttpResponse(status=400)
+
+        # sender = received_json.get('sender')
+        # receiver = received_json.get('receiver')
+        # amount = received_json.get('amount')
+        # timestamp = received_json.get('timestamp')
+        # signature = received_json.get('signature')
+        # hash = received_json.get('hash')
+
+        pending_tx_list = blockchain.json_to_transactions([received_json])
+        pending_tx = pending_tx_list[0]
+
+        transaction_added = False
+
+        if (pending_tx.is_valid_transaction()):
+            blockchain.add_transaction(pending_tx)
+            transaction_added = True
+
+        response = {'message': 'Pending transaction broadcast',
+                    'transaction_added': transaction_added}
 
     return JsonResponse(response)
 
@@ -339,6 +376,9 @@ def add_transaction(request):  # New
         transaction.sign_transaction(keyPair)
 
         blockchain.add_transaction(transaction)
+
+        blockchain.broadcast_pendingtx(transaction)
+
         tx_block_index = len(blockchain.chain)
         response = {
             'message': f'This transaction will be added to Block {tx_block_index}'}
@@ -377,6 +417,8 @@ def add_smartcontract(request):  # New
         transaction.sign_transaction(keyPair)
 
         blockchain.add_transaction(transaction)
+
+        blockchain.broadcast_pendingtx(transaction)
 
         contract_tx_index = len(blockchain.pending_transactions)-1
         # An assumption is being made here that the transaction will be mined in
@@ -464,6 +506,7 @@ def pay_rent(request):
         rent_transactions = smartcontract.distribute_rent(keyPair)
         for tx in rent_transactions:
             blockchain.add_transaction(tx)
+            blockchain.broadcast_pendingtx(tx)
 
         response = {'payed': True}
 
@@ -497,7 +540,10 @@ def add_lender_tocontract(request):
         st_add_lender.sign_transaction(keyPair)
 
         # add SmartcontractTrans to blockchain so other nodes can excute it as well
-        blockchain.pending_transactions.append(st_add_lender)
+        blockchain.add_transaction(st_add_lender)
+
+        # broadcast transaction to other nodes
+        blockchain.broadcast_pendingtx(st_add_lender)
 
         # When other nodes are synching the block to their blockchain, after adding the new block
         # they should check for all ScTransaction and call the code in them on the right smartcontract
