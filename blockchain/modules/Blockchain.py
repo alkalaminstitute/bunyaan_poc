@@ -222,14 +222,15 @@ class Blockchain:
         longest_chain = None
         max_length = len(self.chain)
         for node in self.nodes:
-            print("NODE IS BCHAIN" + str(self.nodes))
-            response = requests.get(f'http://{node}/get_chain')
-            if response.status_code == 200:
-                length = response.json()['length']
-                chain = response.json()['chain']
-                if length > max_length and self.is_chain_valid(chain):
-                    max_length = length
-                    longest_chain = chain
+            if node != self.url:
+                print("NODE IS BCHAIN" + str(self.nodes))
+                response = requests.get(f'http://{node}/get_chain')
+                if response.status_code == 200:
+                    length = response.json()['length']
+                    chain = response.json()['chain']
+                    if length > max_length and self.is_chain_valid(chain):
+                        max_length = length
+                        longest_chain = chain
         if longest_chain:
             # TODO convert longest_chain to Blockchian class from json
             self.chain = self.chainJSONdecode(longest_chain)
