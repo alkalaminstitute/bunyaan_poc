@@ -64,7 +64,12 @@ function SmartContractDetails(props) {
 
     let button;
     if (loanRemaining == 0) {
-        button = <PayRent/>;
+        if (location.state.sc.sender == pubKey) {
+            button = <PayRent/>;
+        }
+        else {
+            button = null
+        }
     } else {
         button = <BecomePartner/>;
     }
