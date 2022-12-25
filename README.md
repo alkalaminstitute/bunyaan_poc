@@ -81,6 +81,8 @@ Once everything is running, you can start adding transactions and smartcontracts
 
 Install docker depending  on your operating system. 
 
+## Run a Docker Container
+
 ```
 docker pull wahid8225/bunyaan:latest
 docker run --name bunyaan -p 8000:8000 -p 3000:3000 -d wahid8225/bunyaan:latest
