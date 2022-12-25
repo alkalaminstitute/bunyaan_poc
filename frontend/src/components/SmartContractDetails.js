@@ -63,15 +63,27 @@ function SmartContractDetails(props) {
     }
 
     let button;
+    let inputHeading;
+    let inputAmountTextbox;
     if (loanRemaining == 0) {
-        if (location.state.sc.sender == pubKey) {
-            button = <PayRent/>;
-        }
-        else {
-            button = null
+        if (location.state.sc.sender == location.state.pubKey) {
+            button = <PayRent />;
+            inputHeading = <p className='card__timestamp'><b>Loan Granted</b></p>;
+            inputAmountTextbox = null;
+        } else {
+            button = null;
+            inputHeading = <p className='card__timestamp'><b>Loan Granted</b></p>;
+            inputAmountTextbox = null;
         }
     } else {
-        button = <BecomePartner/>;
+        if (location.state.sc.sender == location.state.pubKey) {
+            inputHeading = <p className='card__timestamp'><b>Waiting for Loans</b></p>;;
+            inputAmountTextbox = null;
+        } else {
+            inputHeading = <p className='card__timestamp'><b>Loan Amount</b></p>;
+            inputAmountTextbox = <input className="small_input_box" ref={amount} type="text" id="fname" name="amount" placeholder="Amount"/>
+            button = <BecomePartner />;
+        }
     }
 
     return (
@@ -89,8 +101,8 @@ function SmartContractDetails(props) {
                     <p className='card__timestamp'>Loan Remaining: {loanRemaining}</p>
                     <p className='card__timestamp'>Started: {location.state.sc.time}</p>
                     <br />
-                    <p className='card__timestamp'><b>Loan Amount</b></p>
-                    <input className="small_input_box" ref={amount} type="text" id="fname" name="amount" placeholder="Amount"/>
+                    {inputHeading}
+                    {inputAmountTextbox}
                     <br />
                     {button}
                 </div>
