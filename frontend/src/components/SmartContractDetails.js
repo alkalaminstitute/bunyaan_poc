@@ -66,11 +66,14 @@ function SmartContractDetails(props) {
     let inputHeading;
     let inputAmountTextbox;
     if (loanRemaining == 0) {
-        if (location.state.sc.sender == pubKey) {
-            button = <PayRent/>;
-        }
-        else {
-            button = null
+        if (location.state.sc.sender == location.state.pubKey) {
+            button = <PayRent />;
+            inputHeading = <p className='card__timestamp'><b>Loan Granted</b></p>;
+            inputAmountTextbox = null;
+        } else {
+            button = null;
+            inputHeading = <p className='card__timestamp'><b>Loan Granted</b></p>;
+            inputAmountTextbox = null;
         }
     } else {
         if (location.state.sc.sender == location.state.pubKey) {
