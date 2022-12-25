@@ -74,3 +74,14 @@ PORT=3002 npm start
 Once everything is running, you can start adding transactions and smartcontracts. After mining transactions in one node, you should see them in all of the other nodes as well.
 
 **_Please let me know if you find any bugs, there are a few I already know about :)_**
+
+# Docker 
+
+## Pre-requisites
+
+Install docker depending  on your operating system. 
+
+```
+docker pull wahid8225/bunyaan:latest
+docker run --name bunyaan -p 8000:8000 -p 3000:3000 -d wahid8225/bunyaan:latest
+```
